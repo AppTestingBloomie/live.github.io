@@ -961,7 +961,7 @@ kbd {
     <div class="camera-controls">
       <button class="camera-btn" id="startCameraBtn" onclick="startCamera()">開啟攝像頭</button>
       <button class="camera-btn" id="stopCameraBtn" onclick="stopCamera()" disabled>關閉攝像頭</button>
-            <button class="camera-btn" id="switchCameraBtn" onclick="switchCamera()" disabled>切換鏡頭 📷</button>
+      <button class="camera-btn" id="switchCameraBtn" onclick="switchCamera()" disabled>切換鏡頭 📷</button>
     </div>
 
     <div class="video-wrapper">
@@ -1256,10 +1256,12 @@ modal.addEventListener('click', (e) => {
 
 // 攝像頭功能
 let cameraStream = null;
+  let currentFacingMode = 'user'; // 'user' = 前置, 'environment' = 後置
 const cameraVideo = document.getElementById('cameraVideo');
 const cameraPlaceholder = document.getElementById('cameraPlaceholder');
 const startCameraBtn = document.getElementById('startCameraBtn');
 const stopCameraBtn = document.getElementById('stopCameraBtn');
+  const switchCameraBtn = document.getElementById('switchCameraBtn');
 
 async function startCamera() {
   try {
@@ -1277,6 +1279,7 @@ async function startCamera() {
 
     startCameraBtn.disabled = true;
     stopCameraBtn.disabled = false;
+    switchCameraBtn.disabled = false;
   } catch (error) {
     console.error('無法訪問攝像頭:', error);
     alert('無法開啟攝像頭。請確保已授予攝像頭權限。');
@@ -1293,34 +1296,35 @@ function stopCamera() {
 
     startCameraBtn.disabled = false;
     stopCameraBtn.disabled = true;
+    switchCameraBtn.disabled = true;
   }
 
-    async function switchCamera() {
-        // 切換鏡頭模式
-        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+  async function switchCamera() {
+    // 切換鏡頭模式
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
 
-        // 停止當前串流
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-        }
-
-        // 使用新的鏡頭模式重新啟動
-        try {
-            cameraStream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: currentFacingMode,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            });
-            cameraVideo.srcObject = cameraStream;
-        } catch (error) {
-            console.error('切換鏡頭失敗:', error);
-            alert('無法切換鏡頭，請確認設備支援此功能');
-            // 如果失敗，嘗試切換回原來的模式
-            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-        }
+    // 停止當前串流
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
     }
+
+    // 使用新的鏡頭模式重新啟動
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: currentFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      cameraVideo.srcObject = cameraStream;
+    } catch (error) {
+      console.error('切換鏡頭失敗:', error);
+      alert('無法切換鏡頭，請確認設備支援此功能');
+      // 如果失敗，嘗試切換回原來的模式
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    }
+  }
 }
 
 function toggleCameraSection() {
